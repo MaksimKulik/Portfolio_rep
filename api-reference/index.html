@@ -333,6 +333,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#update-a-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Update a Task
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#delete-a-task" class="md-nav__link">
     <span class="md-ellipsis">
       🗑️ Delete a Task
@@ -432,6 +441,15 @@
   <a href="#create-a-new-task" class="md-nav__link">
     <span class="md-ellipsis">
       📝 Create a New Task
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#update-a-task" class="md-nav__link">
+    <span class="md-ellipsis">
+      🔧 Update a Task
     </span>
   </a>
   
@@ -573,6 +591,50 @@ Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
 
 </div>
 
+<h2 id="update-a-task">🔧 Update a Task</h2>
+<div class="api-box">
+
+  <p><strong>Endpoint:</strong> <code>PATCH /api/tasks/{id}</code></p>
+
+  <p><strong>Headers:</strong></p>
+  <pre><code>Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
+
+  <p><strong>Description:</strong><br>
+  Updates one or more fields of the task with the specified ID. Fields not included in the request remain unchanged.</p>
+
+  <p><strong>Path Parameters:</strong></p>
+  <ul>
+    <li><code>{id}</code> (string, required) – The unique identifier of the task to update (e.g., <code>task-002</code>).</li>
+  </ul>
+
+  <p><strong>Request Body:</strong> (at least one field is required)</p>
+  <pre><code>{
+  "title": "Fix login bug ASAP",
+  "description": "Update handling of expired tokens",
+  "status": "Done",
+  "priority": "High",
+  "due_date": "2025-07-10"
+}</code></pre>
+
+  <p><strong>Success Response:</strong></p>
+  <pre><code>{
+  "id": "task-002",
+  "message": "Task updated successfully."
+}</code></pre>
+
+  <p><strong>Status Code:</strong> <code>200 OK</code></p>
+
+  <p><strong>Error Responses:</strong></p>
+  <ul>
+    <li><code>400 Bad Request</code> – No valid fields provided or invalid data format</li>
+    <li><code>401 Unauthorized</code> – Missing or invalid access token</li>
+    <li><code>404 Not Found</code> – Task with the specified ID does not exist</li>
+    <li><code>500 Internal Server Error</code> – Unexpected error while updating the task</li>
+  </ul>
+
+</div>
+
 <h2 id="delete-a-task">🗑️ Delete a Task</h2>
 <div class="api-box">
 
@@ -708,6 +770,6 @@ var livereload = function(epoch, requestId) {
 
     console.log('Enabled live reload');
 }
-livereload(26271494, 26326572);
+livereload(26591255, 26592623);
 </script></body>
 </html>
