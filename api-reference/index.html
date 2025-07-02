@@ -19,7 +19,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.14">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.15">
     
     
       
@@ -471,38 +471,74 @@ Pass the token as a header: <code>Authorization: Bearer YOUR_TOKEN_HERE</code></
 <hr />
 <h2 id="get-all-tasks">📥 Get All Tasks</h2>
 <div class="api-box">
+
   <p><strong>Endpoint:</strong> <code>GET /api/tasks</code></p>
 
   <p><strong>Headers:</strong></p>
   <pre><code>Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
 
-  <p><strong>Description:</strong>  
+  <p><strong>Description:</strong><br>
   Returns a list of all tasks in the authenticated user's workspace.</p>
+
+  <p><strong>Query Parameters (optional):</strong></p>
+  <ul>
+    <li><code>status</code> – Filter tasks by status. Values: <code>To Do</code>, <code>In Progress</code>, <code>Done</code></li>
+    <li><code>priority</code> – Filter tasks by priority. Values: <code>Low</code>, <code>Medium</code>, <code>High</code></li>
+    <li><code>limit</code> – Number of tasks to return (e.g., <code>10</code>)</li>
+    <li><code>offset</code> – Pagination offset (e.g., <code>20</code>)</li>
+  </ul>
+
+  <p><strong>Example Request:</strong></p>
+  <pre><code>GET /api/tasks?status=In%20Progress&priority=High&limit=5
+Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
 
   <p><strong>Success Response:</strong></p>
   <pre><code>[
   {
     "id": "task-001",
     "title": "Design homepage",
+    "description": "Create responsive homepage layout",
     "status": "To Do",
-    "priority": "High"
+    "priority": "High",
+    "due_date": "2025-07-10T00:00:00Z",
+    "created_at": "2025-06-30T14:22:13Z",
+    "updated_at": "2025-07-01T09:47:01Z"
   },
   {
     "id": "task-002",
     "title": "Fix login bug",
+    "description": "Resolve token refresh issue",
     "status": "In Progress",
-    "priority": "Medium"
+    "priority": "Medium",
+    "due_date": null,
+    "created_at": "2025-06-29T08:10:45Z",
+    "updated_at": "2025-07-02T10:15:00Z"
   }
 ]</code></pre>
+
+  <p><strong>Status Code:</strong> <code>200 OK</code></p>
+
+  <p><strong>Error Responses:</strong></p>
+  <ul>
+    <li><code>401 Unauthorized</code> – Missing or invalid access token</li>
+    <li><code>403 Forbidden</code> – Access denied to resource</li>
+    <li><code>500 Internal Server Error</code> – Server encountered an unexpected condition</li>
+  </ul>
+
 </div>
+
 <h2 id="create-a-new-task">📝 Create a New Task</h2>
 <div class="api-box">
+
   <p><strong>Endpoint:</strong> <code>POST /api/tasks</code></p>
 
   <p><strong>Headers:</strong></p>
   <pre><code>Content-Type: application/json
 Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
+
+  <p><strong>Description:</strong><br>
+  Creates a new task in the authenticated user's workspace. Requires a valid JSON payload with task details.</p>
 
   <p><strong>Request Body:</strong></p>
   <pre><code>{
@@ -512,17 +548,46 @@ Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
   "priority": "High"
 }</code></pre>
 
+  <p><strong>Field Descriptions:</strong></p>
+  <ul>
+    <li><code>title</code> (string, required) – The title of the task.</li>
+    <li><code>description</code> (string, optional) – Additional information about the task.</li>
+    <li><code>due_date</code> (string, optional) – Deadline in <code>YYYY-MM-DD</code> format.</li>
+    <li><code>priority</code> (string, optional) – Task priority. Accepted values: <code>Low</code>, <code>Medium</code>, <code>High</code>.</li>
+  </ul>
+
   <p><strong>Success Response:</strong></p>
   <pre><code>{
   "id": "task-003",
   "message": "Task created successfully."
 }</code></pre>
+
+  <p><strong>Status Code:</strong> <code>201 Created</code></p>
+
+  <p><strong>Error Responses:</strong></p>
+  <ul>
+    <li><code>400 Bad Request</code> – Invalid or missing fields in request body</li>
+    <li><code>401 Unauthorized</code> – Missing or invalid access token</li>
+    <li><code>500 Internal Server Error</code> – Server error during task creation</li>
+  </ul>
+
 </div>
+
 <h2 id="delete-a-task">🗑️ Delete a Task</h2>
 <div class="api-box">
+
   <p><strong>Endpoint:</strong> <code>DELETE /api/tasks/{id}</code></p>
 
-  <p><strong>Description:</strong> Deletes the task with the specified ID.</p>
+  <p><strong>Headers:</strong></p>
+  <pre><code>Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
+
+  <p><strong>Description:</strong><br>
+  Permanently deletes the task with the specified ID from the authenticated user's workspace.</p>
+
+  <p><strong>Path Parameters:</strong></p>
+  <ul>
+    <li><code>{id}</code> (string, required) – The unique identifier of the task to delete (e.g., <code>task-003</code>).</li>
+  </ul>
 
   <p><strong>Example Request:</strong></p>
   <pre><code>DELETE /api/tasks/task-003
@@ -533,7 +598,18 @@ Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
   "message": "Task deleted successfully."
 }</code></pre>
 
-  <p><strong>Note:</strong> Deleting a task is permanent and cannot be undone.</p>
+  <p><strong>Status Code:</strong> <code>200 OK</code></p>
+
+  <p><strong>Error Responses:</strong></p>
+  <ul>
+    <li><code>401 Unauthorized</code> – Missing or invalid access token</li>
+    <li><code>404 Not Found</code> – Task with the specified ID does not exist</li>
+    <li><code>500 Internal Server Error</code> – Server error during task deletion</li>
+  </ul>
+
+  <p><strong>Note:</strong><br>
+  Deleting a task is <em>permanent</em> and <strong>cannot be undone</strong>.</p>
+
 </div>
 
 
@@ -586,7 +662,7 @@ Authorization: Bearer YOUR_TOKEN_HERE</code></pre>
       <script id="__config" type="application/json">{"base": "..", "features": [], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../assets/javascripts/bundle.13a4f30d.min.js"></script>
+      <script src="../assets/javascripts/bundle.56ea9cef.min.js"></script>
       
     
   <script>
@@ -632,6 +708,6 @@ var livereload = function(epoch, requestId) {
 
     console.log('Enabled live reload');
 }
-livereload(389426968, 389427453);
+livereload(26271494, 26326572);
 </script></body>
 </html>
