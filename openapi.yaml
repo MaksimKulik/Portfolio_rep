@@ -1,0 +1,297 @@
+openapi: 3.0.0
+info:
+  title: Task API
+  version: 1.0.0
+  description: |
+    API for managing user tasks.
+
+    ### 🔐 Authentication
+
+    All endpoints require authentication.
+
+    Pass your API token in the request header as follows:
+
+    ```
+    Authorization: Bearer YOUR_TOKEN_HERE
+    ```
+
+    Replace `YOUR_TOKEN_HERE` with your actual access token.
+
+    If the token is missing or invalid, the server will respond with:
+    - `401 Unauthorized` – Missing or incorrect token
+    - `403 Forbidden` – Token is valid but does not have permission to access the resource
+
+security:
+  - bearerAuth: []
+
+servers:
+  - url: https://your.api.base.url/api
+
+paths:
+  /tasks:
+    get:
+      summary: Get All Tasks
+      description: Returns a list of all tasks in the authenticated user's workspace.
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [To Do, In Progress, Done]
+          description: Filter tasks by status
+        - in: query
+          name: priority
+          schema:
+            type: string
+            enum: [Low, Medium, High]
+          description: Filter tasks by priority
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            example: 10
+          description: Number of tasks to return
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            example: 20
+          description: Pagination offset
+      responses:
+        '200':
+          description: A JSON array of tasks
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+              examples:
+                example1:
+                  summary: List of tasks
+                  value:
+                    - id: "task-001"
+                      title: "Design homepage"
+                      description: "Create responsive homepage layout"
+                      status: "To Do"
+                      priority: "High"
+                      due_date: "2025-07-10T00:00:00Z"
+                      created_at: "2025-06-30T14:22:13Z"
+                      updated_at: "2025-07-01T09:47:01Z"
+                    - id: "task-002"
+                      title: "Fix login bug"
+                      description: "Resolve token refresh issue"
+                      status: "In Progress"
+                      priority: "Medium"
+                      due_date: null
+                      created_at: "2025-06-29T08:10:45Z"
+                      updated_at: "2025-07-02T10:15:00Z"
+        '401':
+          description: Missing or invalid access token
+        '403':
+          description: Access denied to resource
+        '500':
+          description: Server encountered an unexpected condition
+    post:
+      summary: Create a New Task
+      description: Creates a new task in the authenticated user's workspace. Requires a valid JSON payload with task details.
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewTaskRequest'
+            example:
+              title: "Write release notes"
+              description: "Cover all new features"
+              due_date: "2025-07-01"
+              priority: "High"
+      responses:
+        '201':
+          description: Task created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: task-003
+                  message:
+                    type: string
+                    example: Task created successfully.
+        '400':
+          description: Invalid or missing fields in request body
+        '401':
+          description: Missing or invalid access token
+        '500':
+          description: Server error during task creation
+  /tasks/{id}:
+    patch:
+      summary: Update a Task
+      description: Updates one or more fields of the task with the specified ID. Fields not included in the request remain unchanged.
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the task to update (e.g., task-002)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+            example:
+              title: "Fix login bug ASAP"
+              description: "Update handling of expired tokens"
+              status: "Done"
+              priority: "High"
+              due_date: "2025-07-10"
+      responses:
+        '200':
+          description: Task updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+    
+    delete:
+      summary: Delete a Task
+      description: Permanently deletes the task with the specified ID from the authenticated user's workspace.  
+        ⚠️ Deleting a task is **permanent** and cannot be undone.
+      tags:
+        - Tasks
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the task to delete (e.g., task-003)
+      responses:
+        '200':
+          description: Task deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Task deleted successfully.
+        '401':
+          description: Missing or invalid access token
+        '404':
+          description: Task with the specified ID does not exist
+        '500':
+          description: Server error during task deletion
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Task:
+      type: object
+      properties:
+        id:
+          type: string
+          example: task-001
+        title:
+          type: string
+          example: Design homepage
+        description:
+          type: string
+          example: Create responsive homepage layout
+        status:
+          type: string
+          enum: [To Do, In Progress, Done]
+          example: To Do
+        priority:
+          type: string
+          enum: [Low, Medium, High]
+          example: High
+        due_date:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2025-07-10T00:00:00Z
+        created_at:
+          type: string
+          format: date-time
+          example: 2025-06-30T14:22:13Z
+        updated_at:
+          type: string
+          format: date-time
+          example: 2025-07-01T09:47:01Z
+
+    NewTaskRequest:
+      type: object
+      required:
+        - title
+      properties:
+        title:
+          type: string
+          description: The title of the task
+          example: Write release notes
+        description:
+          type: string
+          description: Additional information about the task
+          example: Cover all new features
+        due_date:
+          type: string
+          format: date
+          description: Deadline in YYYY-MM-DD format
+          example: 2025-07-01
+        priority:
+          type: string
+          enum: [Low, Medium, High]
+          description: Task priority
+          example: High
+
+    UpdateTaskRequest:   # ✅ Now this is outside of NewTaskRequest
+      type: object
+      description: At least one field must be provided
+      properties:
+        title:
+          type: string
+          description: The title of the task
+          example: Fix login bug ASAP
+        description:
+          type: string
+          description: Additional information about the task
+          example: Update handling of expired tokens
+        status:
+          type: string
+          enum: [To Do, In Progress, Done]
+          description: Task status
+          example: Done
+        priority:
+          type: string
+          enum: [Low, Medium, High]
+          description: Task priority
+          example: High
+        due_date:
+          type: string
+          format: date
+          description: Deadline in YYYY-MM-DD format
+          example: 2025-07-10
